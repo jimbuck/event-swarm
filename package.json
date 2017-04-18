@@ -1,0 +1,59 @@
+{
+  "name": "event-swarm",
+  "version": "0.0.1",
+  "description": "Cross-machine events made simple.",
+  "main": "index.js",
+  "scripts": {
+    "clean": "gulp clean",
+    "rebuild": "gulp build",
+    "watch": "gulp watch",
+    "test": "gulp test",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "preversion": "npm test",
+    "version": "git add -A",
+    "postversion": "git push && git push --tags && npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JimmyBoh/event-swarm.git"
+  },
+  "author": "Jim Buck <jim@jimmyboh.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JimmyBoh/event-swarm/issues"
+  },
+  "homepage": "https://github.com/JimmyBoh/event-swarm#readme",
+  "devDependencies": {
+    "@types/event-stream": "^3.3.31",
+    "ava": "^0.19.1",
+    "coveralls": "^2.13.0",
+    "del": "^2.2.2",
+    "gulp": "^3.9.1",
+    "gulp-shell": "^0.6.3",
+    "nyc": "^10.2.0",
+    "typescript": "^2.2.2",
+    "yargs": "^7.1.0"
+  },
+  "dependencies": {
+    "airswarm": "^1.1.0",
+    "event-stream": "^3.3.4",
+    "network-address": "^1.1.2"
+  },
+  "ava": {
+    "files": [
+      "./dist/**/*.spec.js"
+    ],
+    "source": [
+      "./dist/**/*.js"
+    ]
+  },
+  "nyc": {
+    "include": [
+      "dist/**/*.js"
+    ],
+    "exclude": [
+      "dist/**/*.spec.js",
+      "dist/demo.*"
+    ]
+  }
+}
