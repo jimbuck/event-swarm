@@ -39,8 +39,8 @@ test(`EventSwarm#emit broadcasts to all peers`, async (t) => {
     t.plan(2);
 
     return peers.map(peer => new Promise<void>(resolve => {
-      peer.on<number>(eventName, (data, e) => {
-        t.is(data, expectedValue);
+      peer.on<number>(eventName, e => {
+        t.is(e.data, expectedValue);
         resolve();
       });
     }));
@@ -57,8 +57,8 @@ test(`EventSwarm#send emits to specified peers`, async t => {
     return peers.map(peer => {
       // Wait a full second before considering the "listener" to be skipped!
       return Promise.race([delay(1000), new Promise<void>(resolve => {
-        peer.on<number>(eventName, (data, e) => {
-          t.is(data, expectedValue);
+        peer.on<number>(eventName, e => {
+          t.is(e.data, expectedValue);
           resolve();
         });
       })]);

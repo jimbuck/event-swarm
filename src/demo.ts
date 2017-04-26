@@ -2,6 +2,15 @@ const readline = require('readline');
 import { EventSwarm, EventHandler, EventArgs } from './';
 import { Lookup } from './utils';
 
+interface DemoPayload {  
+  /**
+   * The message to send.
+   * 
+   * @type {string}
+   * @memberOf DemoPayload
+   */
+  msg: string;
+}
 
 let swarm: EventSwarm;
 
@@ -23,21 +32,21 @@ rl.question(`Channel: `, (channel: string) => {
 
   swarm = new EventSwarm({ channel });
 
-  swarm.on('event-swarm:connect', ({ id }) => {
-    writeToScreen(`Connect (${id})`);
-  }).on('event-swarm:disconnect', ({ id }) => {
-    writeToScreen(`Disconnect (${id})`);
-  }).on('message', ({ msg }, e) => {
-    writeToScreen(`${e.sender}: ${msg}`);
+  swarm.on('event-swarm:connect', e => {
+    writeToScreen(`Connect (${e.sender})`);
+  }).on('event-swarm:disconnect', e => {
+    writeToScreen(`Disconnect (${e.sender})`);
+  }).on<DemoPayload>('message', e => {
+    writeToScreen(`${e.sender}: ${e.data.msg}`);
   });
-        
+  
   rl.on('line', (line: string) => {
     line = line.trim();
     if (line === '/exit') {
       return rl.close();
     }
 
-    swarm.emit('message', { msg: line.trim() });
+    swarm.emit<DemoPayload>('message', { msg: line.trim() });
     rl.prompt();
   });
 

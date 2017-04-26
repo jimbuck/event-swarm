@@ -16,7 +16,7 @@ export interface EventArgs<T> {
   peer?: Socket;
 }
 
-export type EventHandler<T> = (data?: T, e?: EventArgs<T>) => void;
+export type EventHandler<T> = (e: EventArgs<T>) => void;
 
 export class EventSwarm {
 
@@ -70,9 +70,9 @@ export class EventSwarm {
 
   once<T>(event: string, cb: EventHandler<T>): this {
     this._handlers[event] = this._handlers[event] || [];
-    this._handlers[event].push((data, e) => {
+    this._handlers[event].push(e => {
       this.off(event);
-      cb(data, e);
+      cb(e);
     });
 
     return this;
@@ -127,10 +127,8 @@ export class EventSwarm {
     let peerId: string;
 
     this.send(peer, 'event-swarm:connect', { id: this.id });
-    this.on<{ id: string }>('event-swarm:connect', ({ id }, e) => {
-      if (e.peer === peer) {
-        peerId = id;
-      }
+    this.on('event-swarm:connect', e => {
+      if (e.peer === peer) peerId = e.sender;
     });
 
     peer
@@ -152,7 +150,7 @@ export class EventSwarm {
     payload.peer = peer;
     if (this._handlers[payload.event]) {
       this._handlers[payload.event].forEach(handler => {
-        handler(payload.data, payload);
+        handler(payload);
       });
     }
   }

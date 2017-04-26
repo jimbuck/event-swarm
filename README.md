@@ -16,18 +16,18 @@ Easily send events across machines on the same network, built using [airswarm][1
 
 ## Example:
 
-```ts
+```js
 import EventSwarm from 'event-swarm';
 
 // On first machine...
 let swarm = new EventSwarm({ channel: 'chat' });
 
-swarm.on('ping', (e, data) => {
+swarm.on('ping', e => {
   // e.sender is the id of the sender
-  // e.peer is the duplex stream to the sender
-  // e.data is the payload of the message.
+  // e.data is the payload of the message (automatically (de)serialized)...
+  // e.event is the 
 
-  console.log('pong', data);
+  console.log('pong', e.data);
 });
 
 
@@ -45,7 +45,7 @@ swarm.emit('ping', {
 
 ## Features:
  - Built on [airswarm][1].
- - Channels allow for multiple concurrent swarms to exist on the same network.
+ - Channels allow for multiple swarms to exist on the same network.
  - Built-in events for connection and disconnection.
  - Broadcast events or send events to specific peers.
  
