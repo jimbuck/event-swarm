@@ -23,9 +23,10 @@ import EventSwarm from 'event-swarm';
 let swarm = new EventSwarm({ channel: 'chat' });
 
 swarm.on('ping', e => {
-  // e.sender is the id of the sender
-  // e.data is the payload of the message (automatically (de)serialized)...
-  // e.event is the 
+  // e.sender is the id of the sender.
+  // e.data is the payload of the message (automatically (de)serialized).
+  // e.event is the event name.
+  // e.created is the millisecond timestamp of when the source created it.
 
   console.log('pong', e.data);
 });
