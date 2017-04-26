@@ -27,6 +27,8 @@ export class EventSwarm {
   private _swarm: AirSwarm;
   private _ready: Promise<void>;
 
+  private _closing: boolean;
+
   constructor({ channel }: { channel: string }) {
         
     if (!channel) {
@@ -76,7 +78,7 @@ export class EventSwarm {
     return this;
   }
   
-  off(event: string): this {
+  off(event?: string): this {
     if (event) {
       this._handlers[event] = [];
     } else {
@@ -113,22 +115,30 @@ export class EventSwarm {
   }
 
   close() {
+    this._closing = true; // Set flag to ignore the immenant disconnect events...
     this._swarm.close(); // Stop new connections...
     this._swarm.peers.forEach(peer => {
       peer.end(); // End existing connections...
     });
+    this.off(); // Remove all handlers...
   }
 
   _onPeer(peer: Socket) {
     let peerId: string;
 
     this.send(peer, 'event-swarm:connect', { id: this.id });
-    this.on<{ id: string }>('event-swarm:connect', ({ id }) => peerId = id);
+    this.on<{ id: string }>('event-swarm:connect', ({ id }, e) => {
+      if (e.peer === peer) {
+        peerId = id;
+      }
+    });
+
     peer
       .pipe(es.split()) // Split on newlines...
       .pipe(es.parse({ error: true })) // Parse each line as a JSON object...
       .on('data', this._handleEvent.bind(this, peer))
       .on('end', () => {
+        if (this._closing) return;
         this._handleEvent(peer, {
           event: 'event-swarm:disconnect',
           data: { id: peerId },
