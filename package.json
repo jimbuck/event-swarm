@@ -1,6 +1,6 @@
 {
   "name": "event-swarm",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Cross-machine events made simple.",
   "main": "index.js",
   "scripts": {
