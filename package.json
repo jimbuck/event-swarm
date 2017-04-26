@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/JimmyBoh/event-swarm#readme",
   "devDependencies": {
-    "@types/node": "^6.0.69",
+    "@types/node": "^7.0.13",
     "ava": "^0.19.1",
     "coveralls": "^2.13.0",
     "del": "^2.2.2",
