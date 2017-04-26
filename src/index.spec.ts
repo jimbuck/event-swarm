@@ -30,6 +30,12 @@ test(`EventSwarm#address provides the IP and port`, t => {
   t.true(port.length > 0);
 });
 
+test(`EventSwarm#address returns null upon error`, t => {
+  const swarm = new EventSwarm({ channel: getChannel() });
+  swarm['_swarm'] = null;
+  t.is(swarm.address, null);
+});
+
 test(`EventSwarm#emit broadcasts to all peers`, async (t) => {
   const eventName = 'tick';
   const expectedValue = Date.now();
@@ -64,6 +70,96 @@ test(`EventSwarm#send emits to specified peers`, async t => {
       })]);
     });
   }, (src, peers) => src.send(src.peers[0], eventName, expectedValue));
+});
+
+test(`EventSwarm#once removes handler after execution`, t => {
+  const event = 'tick';
+  
+  const swarm = new EventSwarm({ channel: getChannel() });
+
+  let count = 0;
+
+  function inc(e: any) {
+    count++;
+  }
+
+  swarm.once(event, inc);
+  t.is(swarm['_handlers'][event].length, 1);
+  swarm['_handleEvent'](null, { event } as any);
+  swarm['_handleEvent'](null, { event } as any);
+  t.is(swarm['_handlers'][event].length, 0);
+  
+});
+
+test(`EventSwarm#off requires an event name`, t => {
+  const eventName: string = null;
+  
+  const swarm = new EventSwarm({ channel: getChannel() });
+
+  t.throws(() => swarm.off(eventName));
+});
+
+test(`EventSwarm#off removes provided handler`, t => {
+  const event = 'tick';
+  
+  const swarm = new EventSwarm({ channel: getChannel() });
+
+  function handler(e: any) {
+    t.fail();
+  }
+
+  swarm.on(event, function () { });
+  swarm.on(event, handler);
+  t.is(swarm['_handlers'][event].length, 2);
+  swarm.off(event, handler);
+  t.is(swarm['_handlers'][event].length, 1);
+  swarm['_handleEvent'](null, { event } as any);
+});
+
+test(`EventSwarm#off removes all handlers`, t => {
+  const event = 'tick';
+  
+  const swarm = new EventSwarm({ channel: getChannel() });
+
+  function handler() {
+    t.fail();
+  }
+
+  swarm.on(event, function () { t.fail() });
+  swarm.on(event, handler);
+  t.is(swarm['_handlers'][event].length, 2);
+  swarm.off(event);
+  t.is(swarm['_handlers'][event].length, 0);
+  swarm['_handleEvent'](null, { event } as any);
+});
+
+test(`EventSwarm#close removes all handlers`, async t => {
+  t.plan(3);
+  
+  const event = 'tick';
+  
+  const swarm = new EventSwarm({ channel: getChannel() });
+  const peer = new EventSwarm({ channel: swarm.channel });
+
+  peer.on('event-swarm:disconnect', e => {
+    t.is(e.sender, swarm.id);
+  });
+
+  await delay(100);
+
+  function handler() {
+    t.fail();
+  }
+
+  swarm.on(event, function () { t.fail() });
+  swarm.on(event, handler);
+  t.is(swarm['_handlers'][event].length, 2);
+  swarm.close();
+
+  await delay(100);
+
+  t.is(Object.keys(swarm['_handlers']).length, 0);
+  swarm['_handleEvent'](null, { event } as any);
 });
 
 async function testWithPeers(t: TestContext, assign: (src: EventSwarm, peers: EventSwarm[]) => Array<Promise<void>>, act: (src: EventSwarm, peers: EventSwarm[]) => void) {
