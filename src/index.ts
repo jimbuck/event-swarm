@@ -49,7 +49,7 @@ export class EventSwarm {
     this._swarm.on('listening', markAsReady);
   }
 
-  get address() {
+  public get address() {
     try {
       return `${addr()}:${this._swarm.address().port}`;
     } catch (err) {
@@ -57,18 +57,18 @@ export class EventSwarm {
     }
   }
 
-  get peers() {
+  public get peers() {
     return this._swarm.peers;
   }
 
-  on<T>(event: string, cb: EventHandler<T>): this {
+  public on<T>(event: string, cb: EventHandler<T>): this {
     this._handlers[event] = this._handlers[event] || [];
     this._handlers[event].push(cb);
 
     return this;
   }
 
-  once<T>(event: string, cb: EventHandler<T>): this {
+  public once<T>(event: string, cb: EventHandler<T>): this {
     this._handlers[event] = this._handlers[event] || [];
     this._handlers[event].push(e => {
       this.off(event);
@@ -78,21 +78,27 @@ export class EventSwarm {
     return this;
   }
   
-  off(event?: string): this {
-    if (event) {
-      this._handlers[event] = [];
+  public off<T>(event: string): this;
+  public off<T>(event: string, handler: EventHandler<T>): this;
+  public off<T>(event: string, handler?: EventHandler<T>): this {
+    if (!event) {
+      throw new Error(`event name must be specified!`);
+    }
+
+    if (handler) {
+      this._handlers[event].splice(this._handlers[event].indexOf(handler), 1);
     } else {
-      this._handlers = {};
+      this._handlers[event] = [];
     }
 
     return this;
   }
 
-  emit<T>(event: string, data?: T): this {
+  public emit<T>(event: string, data?: T): this {
     return this.send(this.peers, event, data);
   }
 
-  send<T>(peers: Socket | Array<Socket>, event: string, data?: T): this {
+  public send<T>(peers: Socket | Array<Socket>, event: string, data?: T): this {
     // Don't return this since events are pseudo-async...
     this._ready.then(() => {
       if (!Array.isArray(peers)) {
@@ -114,16 +120,16 @@ export class EventSwarm {
     return this;
   }
 
-  close() {
+  public close() {
     this._closing = true; // Set flag to ignore the immenant disconnect events...
     this._swarm.close(); // Stop new connections...
     this._swarm.peers.forEach(peer => {
       peer.end(); // End existing connections...
     });
-    this.off(); // Remove all handlers...
+    this._handlers = {}; // Remove all handlers...
   }
 
-  _onPeer(peer: Socket) {
+  private _onPeer(peer: Socket) {
     let peerId: string;
 
     this.send(peer, 'event-swarm:connect', { id: this.id });
@@ -146,7 +152,7 @@ export class EventSwarm {
       });
   }
 
-  _handleEvent(peer: Socket, payload: EventArgs<any>) {
+  private _handleEvent(peer: Socket, payload: EventArgs<any>) {
     payload.peer = peer;
     if (this._handlers[payload.event]) {
       this._handlers[payload.event].forEach(handler => {
