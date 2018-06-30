@@ -162,7 +162,11 @@ test(`EventSwarm#close removes all handlers`, async t => {
   swarm['_handleEvent'](null, { event } as any);
 });
 
-async function testWithPeers(t: TestContext, assign: (src: EventSwarm, peers: EventSwarm[]) => Array<Promise<void>>, act: (src: EventSwarm, peers: EventSwarm[]) => void) {
+async function testWithPeers(
+  t: TestContext,
+  assign: (src: EventSwarm, peers: EventSwarm[]) => Array<Promise<void|any>>,
+  act: (src: EventSwarm, peers: EventSwarm[]) => void|any)
+{
   const channel = getChannel();
   const src = new EventSwarm({ channel });
   const peers = [new EventSwarm({ channel }), new EventSwarm({ channel })];
